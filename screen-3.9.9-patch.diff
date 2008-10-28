@@ -1,0 +1,80 @@
+--- screen-3.9.9/socket.c	2001-05-09 12:03:49.000000000 +0200
++++ screen-3.9.9-patched/socket.c	2003-07-05 00:56:51.000000000 +0200
+@@ -324,34 +324,69 @@
+ 	}
+       for (sent = slist; sent; sent = sent->next)
+ 	{
++	  /* Patch to get the string in /proc/%s/cmdline (where %s is
++	     the PID of the command running in screen) when we do
++	     screen -ls by Nicolas C. <nico@bounga.ath.cx> */
++	  void
++	    FindCmd()
++	    {
++	      char *pos;
++	      static char cmdbuf[64];
++	      char buf[32];
++	      int fd;
++	      ssize_t count;
++	      pos = strchr(sent->name, '.');
++	      if (pos != NULL) pos[0] = '\0';
++	      do{
++		sprintf(buf,"/proc/%s/cmdline",sent->name);
++		if( (( fd=open(buf,O_RDONLY) )) == -1) break;
++		count = read(fd, cmdbuf, sizeof(cmdbuf)-1);
++		close(fd);
++		if(count<1) break;
++		cmdbuf[count] = '\0';
++		if(!isprint(cmdbuf[0])) break;
++		while(count--) if(!isprint(cmdbuf[count])) cmdbuf[count]=' ';
++		printf("%s\n", cmdbuf);
++	      }while(0);
++	    }
++	  
++
+ 	  switch (sent->mode)
+ 	    {
+ 	    case 0700:
+-	      printf("\t%s\t(Attached)\n", sent->name);
++	      printf("\t%s\t(Attached)\t", sent->name);
++	      FindCmd();
+ 	      break;
+ 	    case 0600:
+-	      printf("\t%s\t(Detached)\n", sent->name);
++	      printf("\t%s\t(Detached)\t", sent->name);
++	      FindCmd();
+ 	      break;
+ #ifdef MULTIUSER
+ 	    case 0701:
+-	      printf("\t%s\t(Multi, attached)\n", sent->name);
++	      printf("\t%s\t(Multi, attached)\t", sent->name);
++	      FindCmd();
+ 	      break;
+ 	    case 0601:
+-	      printf("\t%s\t(Multi, detached)\n", sent->name);
++	      printf("\t%s\t(Multi, detached)\t", sent->name);
++	      FindCmd();
+ 	      break;
+ #endif
+ 	    case -1:
+ 	      /* No trigraphs here! */
+-	      printf("\t%s\t(Dead ?%c?)\n", sent->name, '?');
++	      printf("\t%s\t(Dead ?%c?)\t", sent->name, '?');
++	      FindCmd();
+ 	      break;
+ 	    case -2:
+-	      printf("\t%s\t(Removed)\n", sent->name);
++	      printf("\t%s\t(Removed)\t", sent->name);
++	      FindCmd();
+ 	      break;
+ 	    case -3:
+-	      printf("\t%s\t(Remote or dead)\n", sent->name);
++	      printf("\t%s\t(Remote or dead)\t", sent->name);
++	      FindCmd();
+ 	      break;
+ 	    case -4:
+-	      printf("\t%s\t(Private)\n", sent->name);
++	      printf("\t%s\t(Private)\t", sent->name);
++	      FindCmd();
+ 	      break;
+ 	    }
+ 	}

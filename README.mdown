@@ -1,0 +1,7 @@
+Some useful patches I wrote for various softwares.
+
+---
+
+For more information see [Project homepage](http://www.bitbucket.org/Bounga/patches/)
+
+Problems, comments, and suggestions are welcome on the [ticket system](http://www.bitbucket.org/Bounga/patches/issues/new/)
